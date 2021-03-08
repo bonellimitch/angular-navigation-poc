@@ -1,6 +1,6 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { ModalComponent } from '../modal/modal.component';
 import { RouteService } from '../route.service';
 
@@ -9,23 +9,31 @@ import { RouteService } from '../route.service';
   templateUrl: './first.component.html',
   styleUrls: ['./first.component.scss']
 })
-export class FirstComponent implements OnInit {
+export class FirstComponent implements OnInit, OnDestroy {
 
   isModal = false;
   outlet!: string;
+  number!: string | null;
 
   constructor(
     // private router: Router,
     private dialog: MatDialog,
     private activatedRoute: ActivatedRoute,
     private route: RouteService
-  ) { }
+  ) {
+    this.number = this.route.getParameter('number');
+  }
+
 
   ngOnInit(): void {
     this.activatedRoute.queryParams.subscribe(params => {
       this.isModal = params.isModal;
       this.outlet = params.outlet;
     });
+  }
+
+  ngOnDestroy(): void {
+    console.log(`first component with number ${this.number} is destroyed`);
   }
 
   openModal(event: Event): void {
@@ -36,7 +44,9 @@ export class FirstComponent implements OnInit {
   }
 
   navigate(url: string): void {
-    this.route.navigate(url);
+    this.route.navigate(url, {
+      number: this.route.randomInt(1, 100)
+    });
 
     // if (!this.isModal) {
     //   this.router.navigate([url]);

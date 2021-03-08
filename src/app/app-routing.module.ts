@@ -12,13 +12,14 @@ export const routes: Routes = [
 ];
 
 export const modalRoutes: Routes = [
+  { path: '', component: FirstComponent},
   { path: 'first', component: FirstComponent },
   { path: 'second', component: SecondComponent },
   { path: 'third', component: ThirdComponent }
 ];
 
 @NgModule({
-  imports: [RouterModule.forRoot(routes, { enableTracing: true })],
+  imports: [RouterModule.forRoot(routes, { onSameUrlNavigation: 'reload', enableTracing: true })],
   exports: [RouterModule]
 })
 export class AppRoutingModule { }
