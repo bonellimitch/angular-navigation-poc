@@ -1,5 +1,6 @@
 <div class="container">
 
-    <router-outlet name="modalOutlet"></router-outlet>
+    <!-- <router-outlet name="outlet"></router-outlet> -->
 
+    <named-outlet [name]="outlet" (initialized)="initialized($event)"></named-outlet>
 </div>

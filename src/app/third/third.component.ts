@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
+import { RouteService } from '../route.service';
 
 @Component({
   selector: 'app-third',
@@ -8,23 +9,36 @@ import { ActivatedRoute, Router } from '@angular/router';
 })
 export class ThirdComponent implements OnInit {
   isModal = false;
+  outlet!: string;
 
   constructor(
-    private router: Router,
-    private route: ActivatedRoute
+    // private router: Router,
+    private activatedRoute: ActivatedRoute,
+    private route: RouteService
   ) { }
 
   ngOnInit(): void {
-    this.route.queryParams.subscribe(params => {
+    this.activatedRoute.queryParams.subscribe(params => {
       this.isModal = params.isModal;
+      this.outlet = params.outlet;
     });
   }
 
   navigate(url: string): void {
-    if (!this.isModal) {
-      this.router.navigate([url]);
-    } else {
-      this.router.navigate([{ outlets: { modalOutlet: [url] } }], { queryParams: { isModal: this.isModal } });
-    }
+    this.route.navigate(url);
+    // if (!this.isModal) {
+    //   this.router.navigate([url]);
+    // } else {
+    //   const outlets = {};
+    //   (outlets as any) [this.outlet] = [url];
+    //   // this.router.navigate([{ outlets }], { queryParams: { isModal: true } });
+    //   this.router.navigate([{ outlets }], {
+    //     queryParams: {
+    //       isModal: this.isModal,
+    //       outlet: this.outlet
+    //     },
+    //     skipLocationChange: true
+    //   });
+    // }
   }
 }

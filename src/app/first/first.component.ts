@@ -1,7 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute } from '@angular/router';
 import { ModalComponent } from '../modal/modal.component';
+import { RouteService } from '../route.service';
 
 @Component({
   selector: 'app-first',
@@ -11,16 +12,19 @@ import { ModalComponent } from '../modal/modal.component';
 export class FirstComponent implements OnInit {
 
   isModal = false;
+  outlet!: string;
 
   constructor(
-    private router: Router,
+    // private router: Router,
     private dialog: MatDialog,
-    private route: ActivatedRoute
+    private activatedRoute: ActivatedRoute,
+    private route: RouteService
   ) { }
 
   ngOnInit(): void {
-    this.route.queryParams.subscribe(params => {
+    this.activatedRoute.queryParams.subscribe(params => {
       this.isModal = params.isModal;
+      this.outlet = params.outlet;
     });
   }
 
@@ -29,22 +33,24 @@ export class FirstComponent implements OnInit {
       width: '80vw',
       height: '80vh'
     });
-    ref.afterClosed().subscribe(response => {
-      console.log(response);
-      this.router.navigate([{
-        outlets: {
-          modalOutlet: null,
-          primary: ['first']
-        }
-      }]);
-    });
   }
 
   navigate(url: string): void {
-    if (!this.isModal) {
-      this.router.navigate([url]);
-    } else {
-      this.router.navigate([{ outlets: { modalOutlet: [url] } }], { queryParams: { isModal: this.isModal } });
-    }
+    this.route.navigate(url);
+
+    // if (!this.isModal) {
+    //   this.router.navigate([url]);
+    // } else {
+    //   const outlets = {};
+    //   (outlets as any) [this.outlet] = [url];
+    //   // this.router.navigate([{ outlets }], { queryParams: { isModal: true } });
+    //   this.router.navigate([{ outlets }], {
+    //     queryParams: {
+    //       isModal: this.isModal,
+    //       outlet: this.outlet
+    //     },
+    //     skipLocationChange: true
+    //   });
+    // }
   }
 }
