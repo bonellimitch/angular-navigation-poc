@@ -52,4 +52,8 @@ export class SecondComponent implements OnInit, OnDestroy {
     //   });
     // }
   }
+
+  goBack(): void {
+    this.route.goBack();
+  }
 }

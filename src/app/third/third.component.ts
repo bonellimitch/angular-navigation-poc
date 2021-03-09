@@ -50,4 +50,8 @@ export class ThirdComponent implements OnInit, OnDestroy {
     //   });
     // }
   }
+
+  goBack(): void {
+    this.route.goBack();
+  }
 }

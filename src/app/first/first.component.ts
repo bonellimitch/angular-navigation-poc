@@ -63,4 +63,8 @@ export class FirstComponent implements OnInit, OnDestroy {
     //   });
     // }
   }
+
+  goBack(): void {
+    this.route.goBack();
+  }
 }

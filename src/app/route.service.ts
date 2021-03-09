@@ -1,7 +1,28 @@
 import { ChangeDetectorRef, ComponentFactoryResolver, Injectable, ViewContainerRef } from '@angular/core';
-import { ActivatedRoute, ActivationStart, ChildrenOutletContexts, NavigationStart, Router, RouterOutlet } from '@angular/router';
+import { ActivatedRoute, ActivationStart, ChildrenOutletContexts, NavigationEnd, Router, RouterOutlet } from '@angular/router';
 import { modalRoutes } from './app-routing.module';
 import * as _ from 'lodash';
+import { Location } from '@angular/common';
+
+
+export class StackEntry {
+  url!: string | undefined;
+  params!: any;
+
+  constructor(url: string | undefined, params: any) {
+    this.url = url;
+    this.params = params;
+  }
+}
+export class RouterOutletStack {
+  public name!: string;
+  public stack!: StackEntry[];
+
+  constructor(name: string) {
+    this.name = name;
+    this.stack = [];
+  }
+}
 
 @Injectable({
   providedIn: 'root'
@@ -10,11 +31,11 @@ export class RouteService {
 
   routerOutletIndex = 0;
 
-  routerOutletStack: string[] = [];
+  routerOutletStack: RouterOutletStack[] = [];
 
   routerOutletMap: Map<string, RouterOutlet> = new Map();
 
-  routerOutletParamStack: any[] = [];
+  private history: any[] = [];
 
   get isModalOpen(): boolean {
     return this.routerOutletStack.length > 0;
@@ -22,7 +43,8 @@ export class RouteService {
 
   constructor(
     private router: Router,
-    private activatedRoute: ActivatedRoute
+    private activatedRoute: ActivatedRoute,
+    private location: Location,
   ) {
     // quick and dirty per risolvere problema apertura N modali
     this.router.events.subscribe(e => {
@@ -34,7 +56,7 @@ export class RouteService {
 
   addDynamicModalRoutes(): string {
     const name = this.getRouterOutletName();
-    this.routerOutletStack.push(name);
+    this.routerOutletStack.push(new RouterOutletStack(name));
     const routes = _.cloneDeep(modalRoutes);
     for (const route of routes) {
       route.outlet = name;
@@ -58,7 +80,7 @@ export class RouteService {
     return name;
   }
 
-  getCurrentActiveRouterOutlet(): string {
+  getCurrentActiveRouterOutlet(): RouterOutletStack {
     return this.routerOutletStack[this.routerOutletIndex - 1];
   }
 
@@ -68,10 +90,10 @@ export class RouteService {
         queryParams: params
       });
     } else if (this.isModalOpen) {
-      const routerOutletName = this.getCurrentActiveRouterOutlet();
+      const activeRouterOutlet = this.getCurrentActiveRouterOutlet();
       const outlets = {};
-      (outlets as any) [routerOutletName] = url ? [`${url}`] : null;
-      this.routerOutletParamStack.push(params);
+      (outlets as any) [activeRouterOutlet.name] = url ? [`${url}`] : null;
+      activeRouterOutlet.stack.push(new StackEntry(url, params));
       this.router.navigate([{ outlets }], {
         skipLocationChange: false,
       });
@@ -79,16 +101,23 @@ export class RouteService {
   }
 
   goBack(): void {
-    // this.loca
+    if (!this.isModalOpen) {
+      this.location.back();
+    } else {
+      const entry = this.popPreviousUrl();
+      if (entry) {
+        this.navigate(entry.url, entry.params);
+      }
+    }
   }
 
   clearRoute(): void {
     if (!this.isModalOpen) {
       this.router.navigate([null]);
     } else if (this.isModalOpen) {
-      const routerOutletName = this.getCurrentActiveRouterOutlet();
+      const activeRouterOutlet = this.getCurrentActiveRouterOutlet();
       const outlets = {};
-      (outlets as any) [routerOutletName] = null;
+      (outlets as any) [activeRouterOutlet.name] = null;
       this.router.navigate([{ outlets }], {
         skipLocationChange: false,
       });
@@ -107,10 +136,10 @@ export class RouteService {
   }
 
   clearRouterOutlet(): void {
-    const name = this.getCurrentActiveRouterOutlet();
+    const activeRouterOutlet = this.getCurrentActiveRouterOutlet();
     this.clearRoute();
-    this.clearDynamicModalRoutes(name);
-    const outlet = this.routerOutletMap.get(name);
+    this.clearDynamicModalRoutes(activeRouterOutlet.name);
+    const outlet = this.routerOutletMap.get(activeRouterOutlet.name);
     if (outlet) {
       outlet.deactivate();
       outlet.ngOnDestroy();
@@ -122,9 +151,11 @@ export class RouteService {
   }
 
   getRouterOutletParams(name: string): any {
-    if (this.isModalOpen && this.routerOutletParamStack.length > 0) {
-      const params = this.routerOutletParamStack[this.routerOutletParamStack.length - 1];
-      return params ?  params[name] : null;
+
+    const activeRouterOutlet = this.getCurrentActiveRouterOutlet();
+    if (this.isModalOpen && activeRouterOutlet && activeRouterOutlet.stack.length > 0) {
+      const entry = activeRouterOutlet.stack[activeRouterOutlet.stack.length - 1];
+      return entry && entry.params ?  entry.params[name] : null;
     }
     return null;
   }
@@ -136,5 +167,20 @@ export class RouteService {
 
   randomInt(min: number, max: number): number {
     return Math.floor(Math.random() * (max - min + 1) + min);
+  }
+
+  public getHistory(): string[] {
+    return this.history;
+  }
+
+  public getPreviousUrl(): StackEntry {
+    const activeRouterOutlet = this.getCurrentActiveRouterOutlet();
+    return activeRouterOutlet.stack[activeRouterOutlet.stack.length - 2];
+  }
+
+  public popPreviousUrl(): StackEntry | undefined {
+    const activeRouterOutlet = this.getCurrentActiveRouterOutlet();
+    activeRouterOutlet.stack.pop(); // current
+    return activeRouterOutlet.stack.pop();  //previous
   }
 }
