@@ -14,8 +14,8 @@ Ogni modale dovrà permette all'utente di navigare in avanti oppure di tornare a
 ## Punti aperti
 
 - **primary router outlet**: analizzare se opportuno gestire in modo uniforme anche il primary router outlet salvando nel service `route.serivice.ts` lo stack di navigazione ed i parametri.
-- **gestione query params**: i query params sono comuni sia al primary outlet che ai secondary outlet, l'idea è che solo il primary outlet sfrutti questi paramentri mentre sui secondary outlet tutti viene gestito da uno stack nel service `route.service.ts`
-
+- **gestione query params**: i query params sono comuni sia al primary outlet che ai secondary outlet, l'idea è che solo il primary outlet sfrutti questi paramentri mentre sui secondary outlet tutto viene gestito da uno stack nel service `route.service.ts`
+- **dipendenza circolare**: risolvere la dipendenza circolare di `route.service.ts` verso `app-routing.module.ts` e quindi verso i componenti che vengono istanziati nell'applicazione. Sfruttare l'injection Angular per iniettare le route nel `route.service.ts` evitando così la dipendenza circolare. 
 
 
 ## References

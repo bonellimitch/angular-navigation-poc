@@ -1,5 +1,5 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute } from '@angular/router';
 import { RouteService } from '../route.service';
 
 @Component({
@@ -36,21 +36,6 @@ export class SecondComponent implements OnInit, OnDestroy {
     this.route.navigate(url, {
       number: this.route.randomInt(1, 100)
     });
-
-    // if (!this.isModal) {
-    //   this.router.navigate([url]);
-    // } else {
-    //   const outlets = {};
-    //   (outlets as any) [this.outlet] = [url];
-    //   // this.router.navigate([{ outlets }], { queryParams: { isModal: true } });
-    //   this.router.navigate([{ outlets }], {
-    //     queryParams: {
-    //       isModal: this.isModal,
-    //       outlet: this.outlet
-    //     },
-    //     skipLocationChange: true
-    //   });
-    // }
   }
 
   goBack(): void {

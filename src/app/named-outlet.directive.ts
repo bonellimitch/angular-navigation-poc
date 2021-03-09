@@ -9,7 +9,7 @@ import { RouteService } from './route.service';
   selector: 'named-outlet',
   exportAs: 'outlet'
 })
-export class NamedOutletDirective implements OnInit, OnDestroy {
+export class NamedOutletDirective implements OnInit {
   public outlet!: RouterOutlet;
   @Input() public name!: string;
 
@@ -24,17 +24,8 @@ export class NamedOutletDirective implements OnInit, OnDestroy {
   ) { }
 
   ngOnInit(): void {
-    // this.outlet = new RouterOutlet(this.parentContexts, this.location, this.resolver, this.name, this.changeDetector);
     this.outlet = this.route.createRouterOutlet(this.parentContexts, this.location, this.resolver, this.name, this.changeDetector);
     this.outlet.ngOnInit();
-
     this.initialized.next();
-  }
-
-  ngOnDestroy(): void {
-    // if (this.outlet) {
-    //   // this.outlet.deactivate();
-    //   this.outlet.ngOnDestroy();
-    // }
   }
 }

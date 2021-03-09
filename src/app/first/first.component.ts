@@ -1,6 +1,6 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute } from '@angular/router';
 import { ModalComponent } from '../modal/modal.component';
 import { RouteService } from '../route.service';
 
@@ -16,7 +16,6 @@ export class FirstComponent implements OnInit, OnDestroy {
   number!: string | null;
 
   constructor(
-    // private router: Router,
     private dialog: MatDialog,
     private activatedRoute: ActivatedRoute,
     private route: RouteService
@@ -47,21 +46,6 @@ export class FirstComponent implements OnInit, OnDestroy {
     this.route.navigate(url, {
       number: this.route.randomInt(1, 100)
     });
-
-    // if (!this.isModal) {
-    //   this.router.navigate([url]);
-    // } else {
-    //   const outlets = {};
-    //   (outlets as any) [this.outlet] = [url];
-    //   // this.router.navigate([{ outlets }], { queryParams: { isModal: true } });
-    //   this.router.navigate([{ outlets }], {
-    //     queryParams: {
-    //       isModal: this.isModal,
-    //       outlet: this.outlet
-    //     },
-    //     skipLocationChange: true
-    //   });
-    // }
   }
 
   goBack(): void {
