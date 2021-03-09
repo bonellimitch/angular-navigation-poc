@@ -35,6 +35,8 @@ export class RouteService {
 
   routerOutletMap: Map<string, RouterOutlet> = new Map();
 
+  primaryRouterOutletQueryParams: any;
+
   get isModalOpen(): boolean {
     return this.routerOutletStack.length > 0;
   }
@@ -49,6 +51,10 @@ export class RouteService {
       if (e instanceof ActivationStart && e.snapshot.outlet.startsWith('modal')) {
         this.routerOutletMap.get(e.snapshot.outlet)?.deactivate();
       }
+    });
+
+    this.activatedRoute.queryParams.subscribe(params => {
+      this.primaryRouterOutletQueryParams = params;
     });
   }
 
@@ -77,6 +83,7 @@ export class RouteService {
       activeRouterOutlet.stack.push(new StackEntry(url, params));
       this.router.navigate([{ outlets }], {
         skipLocationChange: false,
+        queryParams: this.primaryRouterOutletQueryParams
       });
     }
   }
@@ -109,6 +116,7 @@ export class RouteService {
       (outlets as any)[activeRouterOutlet.name] = null;
       this.router.navigate([{ outlets }], {
         skipLocationChange: false,
+        queryParams: this.primaryRouterOutletQueryParams
       });
     }
   }
