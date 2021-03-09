@@ -1,10 +1,23 @@
-# angular-navigation-poc
-Angular Navigation POC - Named Router Outlets with Dialogs
+# Angular Navigation POC (WIP)
+Angular Navigatione POC - Named Router Outlets with Dialogs
 
-problemi riscontrati ad oggi: 
 
-non riusciamo a ripulire correttamente il router outlet, es: 
+## Introduzione
+Il progetto si pone come obbiettivo quello di implementare dinamicamente la creazione di router outlet secondari su modali per innestare fino a N livelli di modali navigabili. 
 
-    1. apro la modale e creo il nuovo outlet con nome outlet_1
-    2. chiudo la modale
-    3. riapro la modale e quindi ricreo l'outlet con nome outlet_1 -> errore
+Ogni modale dovrà permette all'utente di navigare in avanti oppure di tornare ai componenti precedentemente visualizzati sulla modale stessa senza andare a influire nella navigazione delle altre modali o della route principale.
+
+
+## Punti chiave
+- **route.service.ts**: servizio che dovrebbe gestire tutti gli aspetti della navigazione, history stack e salvataggio parametri
+
+## Punti aperti
+
+- **primary router outlet**: analizzare se opportuno gestire in modo uniforme anche il primary router outlet salvando nel service `route.serivice.ts` lo stack di navigazione ed i parametri.
+- **gestione query params**: i query params sono comuni sia al primary outlet che ai secondary outlet, l'idea è che solo il primary outlet sfrutti questi paramentri mentre sui secondary outlet tutti viene gestito da uno stack nel service `route.service.ts`
+
+
+
+## References
+
+Thanks to https://github.com/dawidgarus for the `named-outlet.directive.ts`
