@@ -1,5 +1,5 @@
 import { ChangeDetectorRef, ComponentFactoryResolver, Injectable, ViewContainerRef } from '@angular/core';
-import { ActivatedRoute, ActivationStart, ChildrenOutletContexts, NavigationEnd, Router, RouterOutlet } from '@angular/router';
+import { ActivatedRoute, ActivationStart, ActivationEnd, ChildrenOutletContexts, Router, RouterOutlet } from '@angular/router';
 import { modalRoutes } from './app-routing.module';
 import * as _ from 'lodash';
 import { Location } from '@angular/common';
@@ -29,7 +29,7 @@ export class RouterOutletStack {
 })
 export class RouteService {
 
-  routerOutletIndex = 0;
+  routerOutletIndex = 1;
 
   routerOutletStack: RouterOutletStack[] = [];
 
@@ -38,7 +38,7 @@ export class RouteService {
   primaryRouterOutletQueryParams: any;
 
   get isModalOpen(): boolean {
-    return this.routerOutletStack.length > 0;
+    return this.routerOutletStack.length > 1;
   }
 
   constructor(
@@ -47,9 +47,14 @@ export class RouteService {
     private location: Location,
   ) {
     // quick and dirty per risolvere problema apertura N modali
+    this.routerOutletStack.push(new RouterOutletStack('primary'));
     this.router.events.subscribe(e => {
+      const activeRouterOutlet = this.getCurrentActiveRouterOutlet();
       if (e instanceof ActivationStart && e.snapshot.outlet.startsWith('modal')) {
         this.routerOutletMap.get(e.snapshot.outlet)?.deactivate();
+      }
+      if (e instanceof ActivationEnd && activeRouterOutlet.name === 'primary' && e.snapshot.url.length > 0) {
+        activeRouterOutlet.stack.push(new StackEntry(e.snapshot.url[0].path, e.snapshot.queryParams));
       }
     });
 
@@ -72,18 +77,19 @@ export class RouteService {
    * i dati necessari per mantenere la history.
    */
   navigate(url?: string, params?: any): void {
+    const activeRouterOutlet = this.getCurrentActiveRouterOutlet();
     if (!this.isModalOpen) {
+      // activeRouterOutlet.stack.push(new StackEntry(url, params));
       this.router.navigate([url], {
         queryParams: params
       });
     } else if (this.isModalOpen) {
-      const activeRouterOutlet = this.getCurrentActiveRouterOutlet();
       const outlets = {};
       (outlets as any)[activeRouterOutlet.name] = url ? [`${url}`] : null;
       activeRouterOutlet.stack.push(new StackEntry(url, params));
       this.router.navigate([{ outlets }], {
         skipLocationChange: false,
-        queryParams: this.primaryRouterOutletQueryParams
+        queryParams: this.primaryRouterOutletQueryParams,
       });
     }
   }
@@ -94,6 +100,7 @@ export class RouteService {
    */
   goBack(): void {
     if (!this.isModalOpen) {
+      this.popPreviousUrl();
       this.location.back();
     } else {
       const entry = this.popPreviousUrl();
