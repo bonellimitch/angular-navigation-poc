@@ -20,15 +20,15 @@ export class FirstComponent implements OnInit, OnDestroy {
     private activatedRoute: ActivatedRoute,
     private route: RouteService
   ) {
-    this.number = this.route.getParameter('number');
+    this.number = this.route.getParameter(activatedRoute, 'number');
   }
 
 
   ngOnInit(): void {
-    this.activatedRoute.queryParams.subscribe(params => {
-      this.isModal = params.isModal;
-      this.outlet = params.outlet;
-    });
+    // this.activatedRoute.queryParams.subscribe(params => {
+    //   this.isModal = params.isModal;
+    //   this.outlet = params.outlet;
+    // });
   }
 
   ngOnDestroy(): void {

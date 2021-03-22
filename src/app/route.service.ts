@@ -161,17 +161,18 @@ export class RouteService {
    * Metodo usato dai componenti per ottenere i parametri di input con il quale
    * è stato invocato in base al contesto (primary router outlet o secondary router outlet)
    */
-  getParameter(name: string): any {
-    return this.getRouterOutletParams(name) ?
-      this.getRouterOutletParams(name) : this.activatedRoute.snapshot.queryParams.number;
+  getParameter(activatedRoute: ActivatedRoute, name: string): any {
+    return activatedRoute.outlet === 'primary' ? this.activatedRoute.snapshot.queryParams[name]
+      : this.getRouterOutletParams(activatedRoute, name);
   }
 
   /**
    * Metodo che restituisce i parametri passati in input al componente sfruttando lo stack di history
    * del router outlet attivo.
    */
-  private getRouterOutletParams(name: string): any {
-    const activeRouterOutlet = this.getCurrentActiveRouterOutlet();
+  private getRouterOutletParams(activatedRoute: ActivatedRoute, name: string): any {
+    const activeRouterOutlet = this.routerOutletStack.find(outlet => outlet.name === activatedRoute.outlet);
+    // const activeRouterOutlet = this.getCurrentActiveRouterOutlet();
     if (this.isModalOpen && activeRouterOutlet && activeRouterOutlet.stack.length > 0) {
       const entry = activeRouterOutlet.stack[activeRouterOutlet.stack.length - 1];
       return entry && entry.params ? entry.params[name] : null;
