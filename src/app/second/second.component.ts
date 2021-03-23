@@ -1,5 +1,6 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, HostBinding, OnDestroy, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
+import { Routable, SecondContext } from '../route.model';
 import { RouteService } from '../route.service';
 
 @Component({
@@ -7,7 +8,10 @@ import { RouteService } from '../route.service';
   templateUrl: './second.component.html',
   styleUrls: ['./second.component.scss']
 })
-export class SecondComponent implements OnInit, OnDestroy {
+export class SecondComponent implements OnInit, OnDestroy, Routable {
+
+  @HostBinding('id')
+  id = `second-${RouteService.generateUniqueID()}`;
 
   isModal = false;
   outlet!: string;
@@ -22,23 +26,32 @@ export class SecondComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    // this.activatedRoute.queryParams.subscribe(params => {
-    //   this.isModal = params.isModal;
-    //   this.outlet = params.outlet;
-    // });
   }
-  
+
   ngOnDestroy(): void {
     console.log(`second component with number ${this.number} is destroyed`);
+  }
+
+  saveContext(): void {
+    console.log('callled saved context second component');
+    const context = new SecondContext();
+    context.data = {
+      number: this.number
+    };
+    this.route.setComponentSessionData(this.id, context);
+  }
+
+  handleParamId(): void {
+    console.log('called handle param id second component');
   }
 
   navigate(url: string): void {
     this.route.navigate(url, {
       number: this.route.randomInt(1, 100)
-    });
+    }, this);
   }
 
   goBack(): void {
-    this.route.goBack();
+    this.route.goBack(this);
   }
 }

@@ -1,3 +1,4 @@
+import { Location } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { MatDialogRef } from '@angular/material/dialog';
 import { RouteService } from '../route.service';
@@ -13,13 +14,15 @@ export class ModalComponent implements OnInit {
 
   constructor(
     private route: RouteService,
-    private dialogRef: MatDialogRef<ModalComponent>
+    private dialogRef: MatDialogRef<ModalComponent>,
+    private location: Location
   ) { }
 
   ngOnInit(): void {
     this.outlet = this.route.addDynamicModalRoutes();
     this.dialogRef.afterClosed().subscribe(response => {
       this.route.clearRouterOutlet();
+      this.location.back();
     });
   }
 
