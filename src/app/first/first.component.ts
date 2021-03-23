@@ -13,7 +13,7 @@ import { RouteService } from '../route.service';
 export class FirstComponent implements OnInit, OnDestroy, Routable {
 
   @HostBinding('id')
-  id = `first-${RouteService.generateUniqueID()}`;
+  id!: string;
 
   isModal = false;
   outlet!: string;
@@ -24,7 +24,9 @@ export class FirstComponent implements OnInit, OnDestroy, Routable {
     private activatedRoute: ActivatedRoute,
     private route: RouteService
   ) {
-    this.number = this.route.getParameter(activatedRoute, 'number');
+    this.number = this.route.getParameter(this.activatedRoute, 'number');
+    this.id = this.route.getParameter(this.activatedRoute, 'id');
+    console.log(`first component id is ${this.id}`);
   }
 
   ngOnInit(): void {

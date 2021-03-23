@@ -11,7 +11,7 @@ import { RouteService } from '../route.service';
 export class SecondComponent implements OnInit, OnDestroy, Routable {
 
   @HostBinding('id')
-  id = `second-${RouteService.generateUniqueID()}`;
+  id: string;
 
   isModal = false;
   outlet!: string;
@@ -22,7 +22,9 @@ export class SecondComponent implements OnInit, OnDestroy, Routable {
     private activatedRoute: ActivatedRoute,
     private route: RouteService
   ) {
-    this.number = this.route.getParameter(activatedRoute, 'number');
+    this.number = this.route.getParameter(this.activatedRoute, 'number');
+    this.id = this.route.getParameter(this.activatedRoute, 'id');
+    console.log(`second component id is ${this.id}`);  
   }
 
   ngOnInit(): void {

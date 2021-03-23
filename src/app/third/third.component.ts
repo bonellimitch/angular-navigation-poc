@@ -14,13 +14,15 @@ export class ThirdComponent implements OnInit, OnDestroy, Routable {
   number!: number;
 
   @HostBinding('id')
-  id = `third-${RouteService.generateUniqueID()}`;
+  id!: string;
 
   constructor(
     private activatedRoute: ActivatedRoute,
     private route: RouteService
   ) {
-    this.number = this.route.getParameter(activatedRoute, 'number');
+    this.number = this.route.getParameter(this.activatedRoute, 'number');
+    this.id = this.route.getParameter(this.activatedRoute, 'id');
+    console.log(`third component id is ${this.id}`);  
   }
 
   ngOnInit(): void {

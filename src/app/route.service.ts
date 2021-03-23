@@ -13,7 +13,7 @@ import {
 import { modalRoutes } from './app-routing.module';
 import * as _ from 'lodash';
 import { Location } from '@angular/common';
-import { RouteEntry, NamedRouterOutlet, Routable, Context, RouteUtility } from './route.model';
+import { RouteEntry, NamedRouterOutlet, Routable, Context, RouteUtility, ComponentType } from './route.model';
 import { filter } from 'rxjs/operators';
 
 // url we don't want to track in history for whatever reason
@@ -68,20 +68,17 @@ export class RouteService {
   private initializeRouteService(): void {
 
     (window as any).routeService = this;
-    // 1. recupero contexto componenti da session storage
-    // this.initializeRouterOutletStack();
 
-    this.handlePrimaryRouterOutlet();
-
-    // 2. inizializzo la mappa dei componenti - contesti
+    // 1. inizializzo la mappa dei componenti - contesti
     this.initializeComponentsSessionContext();
+
+    // 2. gestione router outlet principale 
+    this.handlePrimaryRouterOutlet();
 
     // 3. mi metto in ascolto degli eventi di routing
     this.router.events.subscribe(e => {
 
       this.handleNamedOutletDeactivation(e);
-
-      // this.handlePrimaryRouterOutletSack(e);
 
       // 4.1 ad ogni evento di routing aggiorno il routerOutletStack
       this.persistRouterOutletStack();
@@ -126,14 +123,16 @@ export class RouteService {
     if (currentComponent) {
       currentComponent.saveContext();
     }
+    
+    // 2. integro parametri con component ID
+    const componentId = this.generateComponentID(url);
+    params = Object.assign({}, params, {id: componentId});
+    
     const activeRouterOutlet = this.getCurrentActiveRouterOutlet();
     if (!this.isModalOpen) {
       // activeRouterOutlet.stack.push(new StackEntry(url, params));
       this.router.navigate([url], {
-        queryParams: params,
-        state: {
-          outlet: 'primary'
-        }
+        queryParams: params
       });
     } else if (this.isModalOpen) {
       const outlets = {};
@@ -142,11 +141,14 @@ export class RouteService {
       this.router.navigate([{ outlets }], {
         skipLocationChange: false,
         queryParams: this.primaryRouterOutletQueryParams,
-        state: {
-          outlet: 'secondary'
-        }
       });
     }
+  }
+
+  generateComponentID(url: string): string {
+    let componentName = url.replace('/', '-');
+    componentName = componentName.charAt(0) === '-' ? componentName.substring(1, componentName.length) : componentName;
+    return `${componentName}-${RouteService.generateUniqueID()}`;
   }
 
   /**
@@ -325,7 +327,7 @@ export class RouteService {
         if (outlet.outlet === 'primary') {
           this.routerOutletStack.push(new NamedRouterOutlet(outlet.outlet, outlet.history, outlet.currentIndex));
           const entry = this.routerOutletStack[0].history.find(historyEntry => historyEntry.url === event.url);
-          if (entry) {
+          if (entry && this.lastNavigationStartEvent) {
             entry.id = this.lastNavigationStartEvent.id;
           }
         }
@@ -362,8 +364,6 @@ export class RouteService {
       }
     }
   }
-
-
 
   private handlePrimaryRouterOutlet(): void {
     this.router.events
