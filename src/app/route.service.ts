@@ -56,6 +56,10 @@ export class RouteService {
     };
   }
 
+  get primaryRouterOutlet(): NamedRouterOutlet | null {
+    return this.routerOutletStack ? this.routerOutletStack[0] : null;
+  }
+
   constructor(
     private router: Router,
     private activatedRoute: ActivatedRoute,
@@ -72,7 +76,7 @@ export class RouteService {
     // 1. inizializzo la mappa dei componenti - contesti
     this.initializeComponentsSessionContext();
 
-    // 2. gestione router outlet principale 
+    // 2. gestione router outlet principale
     this.handlePrimaryRouterOutlet();
 
     // 3. mi metto in ascolto degli eventi di routing
@@ -123,11 +127,11 @@ export class RouteService {
     if (currentComponent) {
       currentComponent.saveContext();
     }
-    
+
     // 2. integro parametri con component ID
     const componentId = this.generateComponentID(url);
-    params = Object.assign({}, params, {id: componentId});
-    
+    params = Object.assign({}, params, { id: componentId });
+
     const activeRouterOutlet = this.getCurrentActiveRouterOutlet();
     if (!this.isModalOpen) {
       // activeRouterOutlet.stack.push(new StackEntry(url, params));
@@ -227,20 +231,30 @@ export class RouteService {
    * è stato invocato in base al contesto (primary router outlet o secondary router outlet)
    */
   getParameter(activatedRoute: ActivatedRoute, name: string): any {
-    return activatedRoute.outlet === 'primary' ? this.activatedRoute.snapshot.queryParams[name]
-      : this.getRouterOutletParams(activatedRoute, name);
+    const params = this.getRouterOutletParams(activatedRoute);
+    return params ? params[name] : null;
+  }
+
+  /**
+   * Metodo usato dai componenti per ottenere i parametri di input con il quale
+   * è stato invocato in base al contesto (primary router outlet o secondary router outlet)
+   */
+  getParameters(activatedRoute: ActivatedRoute): any {
+    return this.getRouterOutletParams(activatedRoute);
   }
 
   /**
    * Metodo che restituisce i parametri passati in input al componente sfruttando lo stack di history
    * del router outlet attivo.
    */
-  private getRouterOutletParams(activatedRoute: ActivatedRoute, name: string): any {
+  private getRouterOutletParams(activatedRoute: ActivatedRoute): any {
+    if (activatedRoute.outlet === 'primary') {
+      return activatedRoute.snapshot.queryParams;
+    }
     const routerHistory = this.routerOutletStack.find(outlet => outlet.outlet === activatedRoute.outlet);
-    // const activeRouterOutlet = this.getCurrentActiveRouterOutlet();
-    if (this.isModalOpen && routerHistory && routerHistory.history.length > 0) {
+    if (routerHistory && routerHistory.history.length > 0) {
       const entry = routerHistory.history[routerHistory.history.length - 1];
-      return entry && entry.params ? entry.params[name] : null;
+      return entry && entry.params ? entry.params : null;
     }
     return null;
   }
@@ -388,9 +402,9 @@ export class RouteService {
           this.lastNavigationStartEvent = event;
 
           // if by any change we are replacing url / query params I need to pop the previous state
-          if (currentNavigation && currentNavigation.extras.replaceUrl 
-            && this.routerOutletStack[0] && event.navigationTrigger !== 'popstate') {
-            this.routerOutletStack[0].popEntry();
+          if (currentNavigation && currentNavigation.extras.replaceUrl &&
+            this.primaryRouterOutlet && event.navigationTrigger !== 'popstate') {
+            this.primaryRouterOutlet.popEntry();
           }
 
           return;
@@ -412,12 +426,13 @@ export class RouteService {
   }
 
   private handleImperativeNavigation(event: NavigationEnd, currentNavigation: Navigation): void {
-    if (this.lastNavigationStartEvent && this.lastNavigationStartEvent.navigationTrigger === 'imperative' && event.url) {
+    if (this.primaryRouterOutlet && this.lastNavigationStartEvent &&
+      this.lastNavigationStartEvent.navigationTrigger === 'imperative' && event.url) {
       const entry = new RouteEntry(
         event.urlAfterRedirects,
         currentNavigation.extras.queryParams as any,
         this.lastNavigationStartEvent.id);
-      this.routerOutletStack[0].pushEntry(entry);
+      this.primaryRouterOutlet.pushEntry(entry);
     }
   }
 
@@ -428,21 +443,21 @@ export class RouteService {
    * which state we are in.
    */
   private handlePopstateNavigation(event: NavigationEnd, currentNavigation?: Navigation): void {
-    if (this.lastNavigationStartEvent && this.lastNavigationStartEvent.navigationTrigger === 'popstate') {
+    if (this.primaryRouterOutlet && this.lastNavigationStartEvent && this.lastNavigationStartEvent.navigationTrigger === 'popstate') {
       // get the history item that references the idToRestore
       let index = 0;
       if (this.lastNavigationStartEvent.restoredState) {
-        index = this.routerOutletStack[0].history
+        index = this.primaryRouterOutlet.history
           .findIndex(entry =>
             this.lastNavigationStartEvent.restoredState &&
             entry.id === this.lastNavigationStartEvent.restoredState.navigationId);
       }
 
       if (index >= 0) {
-        const historyEntry =  this.routerOutletStack[0].popEntry();
+        const historyEntry = this.primaryRouterOutlet.popEntry();
         historyEntry.id = this.lastNavigationStartEvent.id;
       } else {
-        this.routerOutletStack[0].currentIndex = 0;
+        this.primaryRouterOutlet.currentIndex = 0;
       }
     }
   }
