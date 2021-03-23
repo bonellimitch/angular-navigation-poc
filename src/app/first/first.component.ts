@@ -37,16 +37,12 @@ export class FirstComponent implements OnInit, OnDestroy, Routable {
   }
 
   saveContext(): void {
-    console.log('callled saved context first component');
+    console.log('called saved context first component');
     const context = new FirstContext();
     context.data = {
       number: this.number
     };
     this.route.setComponentSessionData(this.id, context);
-  }
-
-  handleParamId(): void {
-    console.log('callled handle param id first component');
   }
 
   openModal(event: Event): void {

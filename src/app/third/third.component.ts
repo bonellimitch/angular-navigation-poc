@@ -33,16 +33,12 @@ export class ThirdComponent implements OnInit, OnDestroy, Routable {
   }
 
   saveContext(): void {
-    console.log('callled saved context third component');
+    console.log('called saved context third component');
     const context = new ThirdContext();
     context.data = {
       number: this.number
     };
     this.route.setComponentSessionData(this.id, context);
-  }
-
-  handleParamId(): void {
-    console.log('callled handle param id third component');
   }
 
   navigate(url: string): void {

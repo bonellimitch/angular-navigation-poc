@@ -35,16 +35,12 @@ export class SecondComponent implements OnInit, OnDestroy, Routable {
   }
 
   saveContext(): void {
-    console.log('callled saved context second component');
+    console.log('called saved context second component');
     const context = new SecondContext();
     context.data = {
       number: this.number
     };
     this.route.setComponentSessionData(this.id, context);
-  }
-
-  handleParamId(): void {
-    console.log('called handle param id second component');
   }
 
   navigate(url: string): void {

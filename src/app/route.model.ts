@@ -166,8 +166,4 @@ export class ThirdContext implements Context {
 export abstract class Routable {
 
     saveContext(): void { }
-
-    handleParamId(): void {
-        // TODO: refresh router with paramID
-    }
 }
