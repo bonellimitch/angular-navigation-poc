@@ -1,6 +1,7 @@
 import { Location } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { MatDialogRef } from '@angular/material/dialog';
+import { NamedRouterOutlet } from '../route.model';
 import { RouteService } from '../route.service';
 
 @Component({
@@ -10,7 +11,7 @@ import { RouteService } from '../route.service';
 })
 export class ModalComponent implements OnInit {
 
-  outlet!: any;
+  outlet!: NamedRouterOutlet;
   outletNotActivated = true;
 
   constructor(
@@ -22,9 +23,11 @@ export class ModalComponent implements OnInit {
   ngOnInit(): void {
     this.outlet = this.route.addDynamicModalRoutes();
     this.dialogRef.afterClosed().subscribe(response => {
-      if (this.outletNotActivated) {
-        this.location.back();
-      }
+
+      // const navigations = this.outlet.history.length;
+      // for (let i = 0; i < navigations; i++) {
+      //   this.location.back();
+      // }
       this.route.clearRouterOutlet();
     });
   }
@@ -33,7 +36,7 @@ export class ModalComponent implements OnInit {
    * Quando il router outlet è inizializzato allora se necessario navigo al componente
    */
   initialized(event?: any): void {
-    const outlet = this.route.getActiveRouterOutletByName(this.outlet);
+    const outlet = this.route.getActiveRouterOutletByName(this.outlet.name);
     this.outletNotActivated = (outlet && !outlet.isActivated) as boolean;
     if (this.outletNotActivated) {
       this.route.navigate('first', {

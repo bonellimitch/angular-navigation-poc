@@ -62,9 +62,8 @@ export class RouteService {
   constructor(
     private router: Router,
     private activatedRoute: ActivatedRoute,
-    private location: Location,
+    private location: Location
   ) {
-
     this.initializeRouteService();
   }
 
@@ -127,10 +126,10 @@ export class RouteService {
       });
     } else if (this.isModalOpen) {
       const outlets = {};
-      (outlets as any)[activeRouterOutlet.outlet] = url ? [`${url}`] : null;
+      (outlets as any)[activeRouterOutlet.name] = url ? [`${url}`] : null;
       activeRouterOutlet.pushEntry(new RouteEntry(url, params));
       this.router.navigate([{ outlets }], {
-        skipLocationChange: false,
+        skipLocationChange: true,
         queryParams: this.primaryRouterOutletQueryParams,
       });
     }
@@ -152,7 +151,6 @@ export class RouteService {
       this.location.back();
     } else {
       const entry = this.popPreviousUrl();
-      this.location.back();
       if (entry) {
         this.navigate(entry.url, entry.params, currentComponent);
       }
@@ -177,9 +175,9 @@ export class RouteService {
     } else if (this.isModalOpen) {
       const activeRouterOutlet = this.getCurrentActiveRouterOutlet();
       const outlets = {};
-      (outlets as any)[activeRouterOutlet.outlet] = null;
+      (outlets as any)[activeRouterOutlet.name] = null;
       this.router.navigate([{ outlets }], {
-        skipLocationChange: false,
+        skipLocationChange: true,
         queryParams: this.primaryRouterOutletQueryParams
       });
     }
@@ -209,8 +207,8 @@ export class RouteService {
   clearRouterOutlet(): void {
     const activeRouterOutlet = this.getCurrentActiveRouterOutlet();
     this.clearRoute();
-    this.clearDynamicModalRoutes(activeRouterOutlet.outlet);
-    const outlet = this.routerOutletMap.get(activeRouterOutlet.outlet);
+    this.clearDynamicModalRoutes(activeRouterOutlet.name);
+    const outlet = this.routerOutletMap.get(activeRouterOutlet.name);
     if (outlet) {
       outlet.deactivate();
       outlet.ngOnDestroy();
@@ -263,7 +261,7 @@ export class RouteService {
   }
 
   private getRouterOutletByActivatedRoute(activatedRoute: ActivatedRoute): NamedRouterOutlet | undefined {
-    return this.routerOutletStack.find(outlet => outlet.outlet === activatedRoute.outlet);
+    return this.routerOutletStack.find(outlet => outlet.name === activatedRoute.outlet);
   }
 
   /**
@@ -301,16 +299,17 @@ export class RouteService {
   /**
    * Aggiunge dinamicamente le route alle route di angular
    */
-  addDynamicModalRoutes(): string {
+  addDynamicModalRoutes(): NamedRouterOutlet {
     const name = this.getRouterOutletName();
-    this.routerOutletStack.push(new NamedRouterOutlet(name));
+    const routerOutlet = new NamedRouterOutlet(name);
+    this.routerOutletStack.push(routerOutlet);
     const routes = _.cloneDeep(modalRoutes);
     for (const route of routes) {
       route.outlet = name;
     }
 
     this.router.config.push(...routes);
-    return name;
+    return routerOutlet;
   }
 
   /**

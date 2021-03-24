@@ -30,12 +30,12 @@ export class RouteEntry {
 }
 
 export class NamedRouterOutlet {
-    outlet: string;
+    name: string;
     history: RouteEntry[];
     currentIndex: number;
 
-    constructor(outlet: string, history = [], currentIndex = 0) {
-        this.outlet = outlet;
+    constructor(name: string, history = [], currentIndex = 0) {
+        this.name = name;
         this.history = history;
         this.currentIndex = currentIndex;
     }
