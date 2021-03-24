@@ -31,15 +31,20 @@ export class RouteService {
 
   routerOutletMap: Map<string, RouterOutlet> = new Map();
 
+  // riferimento agli ultimi parametri in query string configurati
   primaryRouterOutletQueryParams: any;
 
   lastNavigationStartEvent!: NavigationStart;
 
   lastActivationStartEvent!: ActivationStart;
 
-  skipLocationChangeOnModalNavigation = true;
+  // pilota la skipLocationChange nel routing su modale
+  skipLocationChangeOnModalNavigation = false;
 
-  // indicates if the service is loading now for the first time
+  // tiene traccia del numero di location.back da fare al dismiss di tutte le modale se skipLocationChangeOnModalNavigation = false
+  backs = 0;
+
+  // indica se il service si sta caricando ora per la prima volta
   firstLoad = true;
 
   static generateUniqueID(): number {
@@ -221,9 +226,14 @@ export class RouteService {
   cleanUpLocation(activeRouterOutlet: NamedRouterOutlet): void {
     // 1. necessario ripulire la location solo se non è configurato il skipLocationChange
     if (!this.skipLocationChangeOnModalNavigation) {
-      const navigations = activeRouterOutlet.history.length;
-      for (let i = 0; i < navigations; i++) {
-        this.location.back();
+      this.backs = this.backs + activeRouterOutlet.history.length;
+      if (activeRouterOutlet.name === 'modal_1') {
+        for (let i = 0; i < this.backs; i++) {
+          this.location.back();
+        }
+        this.backs = 0;
+      } else {
+        this.backs = this.backs + 1;
       }
     }
   }

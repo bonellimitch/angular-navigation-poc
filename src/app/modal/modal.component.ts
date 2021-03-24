@@ -16,14 +16,21 @@ export class ModalComponent implements OnInit {
 
   constructor(
     private route: RouteService,
-    private dialogRef: MatDialogRef<ModalComponent>,
-    private location: Location
+    private dialogRef: MatDialogRef<ModalComponent>
   ) { }
 
   ngOnInit(): void {
     this.outlet = this.route.addDynamicModalRoutes();
+
+    // this.dialogRef.backdropClick().subscribe(backdrop => {
+    //   this.dialogRef.close(this.outlet.name);
+    // });
+
     this.dialogRef.afterClosed().subscribe(response => {
-      this.route.clearRouterOutlet();
+      // if (this.outlet.name === response) {
+        console.log('aftet closed fired');
+        this.route.clearRouterOutlet();
+      // }
     });
   }
 
@@ -39,5 +46,4 @@ export class ModalComponent implements OnInit {
       });
     }
   }
-
 }

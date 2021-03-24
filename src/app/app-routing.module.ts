@@ -19,7 +19,7 @@ export const modalRoutes: Routes = [
 ];
 
 @NgModule({
-  imports: [RouterModule.forRoot(routes, { onSameUrlNavigation: 'reload', enableTracing: true })],
+  imports: [RouterModule.forRoot(routes, { onSameUrlNavigation: 'reload', enableTracing: false })],
   exports: [RouterModule]
 })
 export class AppRoutingModule { }

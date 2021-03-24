@@ -52,7 +52,8 @@ export class FirstComponent implements OnInit, OnDestroy, Routable {
   openModal(event: Event): void {
     const ref = this.dialog.open(ModalComponent, {
       width: '80vw',
-      height: '80vh'
+      height: '80vh',
+      // disableClose: true
     });
   }
 
