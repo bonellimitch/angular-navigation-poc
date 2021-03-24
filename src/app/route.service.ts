@@ -2,7 +2,6 @@ import { ChangeDetectorRef, ComponentFactoryResolver, Injectable, ViewContainerR
 import {
   ActivatedRoute,
   ActivationStart,
-  ActivationEnd,
   ChildrenOutletContexts,
   Router,
   RouterOutlet,
@@ -101,20 +100,12 @@ export class RouteService {
     }
   }
 
-  private handlePrimaryRouterOutletSack(e: any): void {
-    const activeRouterOutlet = this.getCurrentActiveRouterOutlet();
-    if (e instanceof ActivationEnd && activeRouterOutlet.outlet === 'primary' && e.snapshot.url.length > 0) {
-      activeRouterOutlet.pushEntry(new RouteEntry(e.snapshot.url[0].path, e.snapshot.queryParams));
-    }
-  }
-
-  /**
-   * Restituisce il router outlet attualmente attivo, ovvero quello incima allo stack
-   * di router outlet che sono stati istanziati.
-   */
-  getCurrentActiveRouterOutlet(): NamedRouterOutlet {
-    return this.routerOutletStack[this.routerOutletStack.length - 1];
-  }
+  // private handlePrimaryRouterOutletSack(e: any): void {
+  //   const activeRouterOutlet = this.getCurrentActiveRouterOutlet();
+  //   if (e instanceof ActivationEnd && activeRouterOutlet.outlet === 'primary' && e.snapshot.url.length > 0) {
+  //     activeRouterOutlet.pushEntry(new RouteEntry(e.snapshot.url[0].path, e.snapshot.queryParams));
+  //   }
+  // }
 
   /**
    * Metodo proxy verso router.navigate di Angular che deve implementare tutta la gestione
@@ -265,6 +256,14 @@ export class RouteService {
       return entry && entry.params ? entry.params : null;
     }
     return null;
+  }
+
+  /**
+   * Restituisce il router outlet attualmente attivo, ovvero quello incima allo stack
+   * di router outlet che sono stati istanziati.
+   */
+  getCurrentActiveRouterOutlet(): NamedRouterOutlet {
+    return this.routerOutletStack[this.routerOutletStack.length - 1];
   }
 
   private getRouterOutletByActivatedRoute(activatedRoute: ActivatedRoute): NamedRouterOutlet | undefined {
