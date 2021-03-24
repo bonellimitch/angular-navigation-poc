@@ -7,13 +7,13 @@ import {
   RouterOutlet,
   NavigationEnd,
   NavigationStart,
-  Navigation
+  Navigation,
+  Event
 } from '@angular/router';
 import { modalRoutes } from './app-routing.module';
 import * as _ from 'lodash';
 import { Location } from '@angular/common';
-import { RouteEntry, NamedRouterOutlet, Routable, Context, RouteUtility, ComponentType } from './route.model';
-import { filter } from 'rxjs/operators';
+import { RouteEntry, NamedRouterOutlet, Routable, Context, RouteUtility } from './route.model';
 
 // url we don't want to track in history for whatever reason
 export const BLACKLIST_URLS = [];
@@ -75,29 +75,25 @@ export class RouteService {
     // 1. inizializzo la mappa dei componenti - contesti
     this.initializeComponentsSessionContext();
 
-    // 2. gestione router outlet principale
-    this.handlePrimaryRouterOutlet();
-
     // 3. mi metto in ascolto degli eventi di routing
     this.router.events.subscribe(e => {
 
-      this.handleNamedOutletDeactivation(e);
+      // 3.1 gestione router outlet primario
+      this.handlePrimaryRouterOutlet(e);
 
-      // 4.1 ad ogni evento di routing aggiorno il routerOutletStack
-      this.persistRouterOutletStack();
+      // 3.2 gestione named router outlets
+      this.handleNamedOutletRouterOutlets(e);
+
+      // 3.3 salvataggio routerOutletStack alla fine di ogni navigazione
+      if (e instanceof NavigationEnd) {
+        this.persistRouterOutletStack();
+      }
     });
 
-    // 4. mi metto in ascolto degli eventi sui queryParams per salvarmi gli ultimi parametri
+    // 5. mi metto in ascolto degli eventi sui queryParams per salvarmi gli ultimi parametri
     this.activatedRoute.queryParams.subscribe(params => {
       this.primaryRouterOutletQueryParams = params;
     });
-  }
-
-  private handleNamedOutletDeactivation(e: any): void {
-    // quick and dirty per risolvere problema apertura N modali
-    if (e instanceof ActivationStart && e.snapshot.outlet.startsWith('modal')) {
-      this.routerOutletMap.get(e.snapshot.outlet)?.deactivate();
-    }
   }
 
   // private handlePrimaryRouterOutletSack(e: any): void {
@@ -390,50 +386,45 @@ export class RouteService {
     }
   }
 
-  private handlePrimaryRouterOutlet(): void {
-    this.router.events
-      .pipe(
-        filter(event => event instanceof NavigationStart || event instanceof ActivationStart || event instanceof NavigationEnd)
-      ).subscribe(event => {
+  private handlePrimaryRouterOutlet(event: Event): void {
+    if (event instanceof NavigationStart || event instanceof ActivationStart || event instanceof NavigationEnd) {
+      // trying to fetch eventually store navigation stack
+      if (this.firstLoad) {
+        this.firstLoad = false;
+        this.initializeRouterOutletStack(event as NavigationEnd);
+      }
 
-        // trying to fetch eventually store navigation stack
-        if (this.firstLoad) {
-          this.firstLoad = false;
-          this.initializeRouterOutletStack(event as NavigationEnd);
+      const currentNavigation = this.router.getCurrentNavigation() as Navigation;
+      // we don't want to track this types of navigations
+      if (currentNavigation && currentNavigation.extras.skipLocationChange) {
+        return;
+      }
+
+      // temporarly storing navigation event for later use of its data
+      if (event instanceof NavigationStart) {
+        this.lastNavigationStartEvent = event;
+
+        // if by any change we are replacing url / query params I need to pop the previous state
+        if (currentNavigation && currentNavigation.extras.replaceUrl &&
+          this.primaryRouterOutlet && event.navigationTrigger !== 'popstate') {
+          this.primaryRouterOutlet.popEntry();
         }
 
-        const currentNavigation = this.router.getCurrentNavigation() as Navigation;
-        // we don't want to track this types of navigations
-        if (currentNavigation && currentNavigation.extras.skipLocationChange) {
-          return;
-        }
+        return;
+      }
 
-        // temporarly storing navigation event for later use of its data
-        if (event instanceof NavigationStart) {
-          this.lastNavigationStartEvent = event;
+      if (event instanceof ActivationStart) {
+        this.lastActivationStartEvent = event;
+      }
 
-          // if by any change we are replacing url / query params I need to pop the previous state
-          if (currentNavigation && currentNavigation.extras.replaceUrl &&
-            this.primaryRouterOutlet && event.navigationTrigger !== 'popstate') {
-            this.primaryRouterOutlet.popEntry();
-          }
+      // NavigationEnd events
+      if (this.lastActivationStartEvent.snapshot.outlet === 'primary' && event instanceof NavigationEnd) {
+        this.handleImperativeNavigation(event, currentNavigation);
 
-          return;
-        }
-
-        if (event instanceof ActivationStart) {
-          this.lastActivationStartEvent = event;
-        }
-
-        // NavigationEnd events
-        if (this.lastActivationStartEvent.snapshot.outlet === 'primary' && event instanceof NavigationEnd) {
-          this.handleImperativeNavigation(event, currentNavigation);
-
-          this.handlePopstateNavigation(event, currentNavigation);
-
-          this.persistRouterOutletStack();
-        }
-      });
+        this.handlePopstateNavigation(event, currentNavigation);
+      }
+      this.persistRouterOutletStack();
+    }
   }
 
   private handleImperativeNavigation(event: NavigationEnd, currentNavigation: Navigation): void {
@@ -470,6 +461,13 @@ export class RouteService {
       } else {
         this.primaryRouterOutlet.currentIndex = 0;
       }
+    }
+  }
+
+  private handleNamedOutletRouterOutlets(e: Event): void {
+    // quick and dirty per risolvere problema apertura N modali
+    if (e instanceof ActivationStart && e.snapshot.outlet.startsWith('modal')) {
+      this.routerOutletMap.get(e.snapshot.outlet)?.deactivate();
     }
   }
 }

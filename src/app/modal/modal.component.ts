@@ -11,6 +11,7 @@ import { RouteService } from '../route.service';
 export class ModalComponent implements OnInit {
 
   outlet!: any;
+  outletNotActivated = true;
 
   constructor(
     private route: RouteService,
@@ -21,8 +22,10 @@ export class ModalComponent implements OnInit {
   ngOnInit(): void {
     this.outlet = this.route.addDynamicModalRoutes();
     this.dialogRef.afterClosed().subscribe(response => {
+      if (this.outletNotActivated) {
+        this.location.back();
+      }
       this.route.clearRouterOutlet();
-      this.location.back();
     });
   }
 
@@ -31,8 +34,11 @@ export class ModalComponent implements OnInit {
    */
   initialized(event?: any): void {
     const outlet = this.route.getActiveRouterOutletByName(this.outlet);
-    if (outlet && !outlet.isActivated) {
-      this.route.navigate('first');
+    this.outletNotActivated = (outlet && !outlet.isActivated) as boolean;
+    if (this.outletNotActivated) {
+      this.route.navigate('first', {
+        number: this.route.randomInt(1, 100)
+      });
     }
   }
 
