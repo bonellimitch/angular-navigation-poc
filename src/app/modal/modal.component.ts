@@ -23,11 +23,6 @@ export class ModalComponent implements OnInit {
   ngOnInit(): void {
     this.outlet = this.route.addDynamicModalRoutes();
     this.dialogRef.afterClosed().subscribe(response => {
-
-      // const navigations = this.outlet.history.length;
-      // for (let i = 0; i < navigations; i++) {
-      //   this.location.back();
-      // }
       this.route.clearRouterOutlet();
     });
   }

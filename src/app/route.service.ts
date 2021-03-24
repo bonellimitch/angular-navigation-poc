@@ -37,6 +37,8 @@ export class RouteService {
 
   lastActivationStartEvent!: ActivationStart;
 
+  skipLocationChangeOnModalNavigation = true;
+
   // indicates if the service is loading now for the first time
   firstLoad = true;
 
@@ -129,7 +131,7 @@ export class RouteService {
       (outlets as any)[activeRouterOutlet.name] = url ? [`${url}`] : null;
       activeRouterOutlet.pushEntry(new RouteEntry(url, params));
       this.router.navigate([{ outlets }], {
-        skipLocationChange: true,
+        skipLocationChange: this.skipLocationChangeOnModalNavigation,
         queryParams: this.primaryRouterOutletQueryParams,
       });
     }
@@ -177,7 +179,7 @@ export class RouteService {
       const outlets = {};
       (outlets as any)[activeRouterOutlet.name] = null;
       this.router.navigate([{ outlets }], {
-        skipLocationChange: true,
+        skipLocationChange: this.skipLocationChangeOnModalNavigation,
         queryParams: this.primaryRouterOutletQueryParams
       });
     }
@@ -207,11 +209,22 @@ export class RouteService {
   clearRouterOutlet(): void {
     const activeRouterOutlet = this.getCurrentActiveRouterOutlet();
     this.clearRoute();
-    this.clearDynamicModalRoutes(activeRouterOutlet.name);
+    this.cleanUpLocation(activeRouterOutlet);
+    this.clearNamedRouterOutlet(activeRouterOutlet);
     const outlet = this.routerOutletMap.get(activeRouterOutlet.name);
     if (outlet) {
       outlet.deactivate();
       outlet.ngOnDestroy();
+    }
+  }
+
+  cleanUpLocation(activeRouterOutlet: NamedRouterOutlet): void {
+    // 1. necessario ripulire la location solo se non è configurato il skipLocationChange
+    if (!this.skipLocationChangeOnModalNavigation) {
+      const navigations = activeRouterOutlet.history.length;
+      for (let i = 0; i < navigations; i++) {
+        this.location.back();
+      }
     }
   }
 
@@ -301,8 +314,15 @@ export class RouteService {
    */
   addDynamicModalRoutes(): NamedRouterOutlet {
     const name = this.getRouterOutletName();
+
+    // 1. ripulisco eventuali rotte già associato al router outlet
+    this.router.config = this.router.config.filter(route => route.outlet !== name);
+
+    // 2. creo il name router outlet e lo aggiungo allo stack
     const routerOutlet = new NamedRouterOutlet(name);
     this.routerOutletStack.push(routerOutlet);
+
+    // 3. aggiungo le rotte associato al nuovo router outlet
     const routes = _.cloneDeep(modalRoutes);
     for (const route of routes) {
       route.outlet = name;
@@ -316,9 +336,9 @@ export class RouteService {
    * Dato il nome dell router outlet ripulisce le route ad esso associato, ripristinando le route
    * angular originali.
    */
-  clearDynamicModalRoutes(outlet: string): void {
-    const routes = this.router.config.filter(route => route.outlet !== outlet);
-    this.router.resetConfig(routes);
+  clearNamedRouterOutlet(outlet: NamedRouterOutlet): void {
+    // const routes = this.router.config.filter(route => route.outlet !== outlet);
+    // this.router.resetConfig(routes);
     this.routerOutletStack.pop();
   }
 
