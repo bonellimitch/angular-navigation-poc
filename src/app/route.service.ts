@@ -172,6 +172,14 @@ export class RouteService {
     }
   }
 
+  showBackButton(activatedRoute: ActivatedRoute): boolean {
+    if (activatedRoute) {
+      const routerHistory = this.getRouterOutletByActivatedRoute(activatedRoute);
+      return (routerHistory && routerHistory.currentIndex >= 1) as boolean;
+    }
+    return false;
+  }
+
   /**
    * Ripulisce la route settando come path 'null', attenzione: nella definizione delle route
    * deve essere prevista una route '' altrimenti va in errore.
@@ -251,12 +259,16 @@ export class RouteService {
     if (activatedRoute.outlet === 'primary') {
       return activatedRoute.snapshot.queryParams;
     }
-    const routerHistory = this.routerOutletStack.find(outlet => outlet.outlet === activatedRoute.outlet);
+    const routerHistory = this.getRouterOutletByActivatedRoute(activatedRoute);
     if (routerHistory && routerHistory.history.length > 0) {
       const entry = routerHistory.history[routerHistory.history.length - 1];
       return entry && entry.params ? entry.params : null;
     }
     return null;
+  }
+
+  private getRouterOutletByActivatedRoute(activatedRoute: ActivatedRoute): NamedRouterOutlet | undefined {
+    return this.routerOutletStack.find(outlet => outlet.outlet === activatedRoute.outlet);
   }
 
   /**

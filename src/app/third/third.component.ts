@@ -16,6 +16,10 @@ export class ThirdComponent implements OnInit, OnDestroy, Routable {
   @HostBinding('id')
   id!: string;
 
+  get showBackButton(): boolean {
+    return this.route.showBackButton(this.activatedRoute);
+  }
+
   constructor(
     private activatedRoute: ActivatedRoute,
     private route: RouteService

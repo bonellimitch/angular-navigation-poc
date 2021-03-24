@@ -10,5 +10,5 @@
 </div>
 
 <div class="container">
-    <button mat-stroked-button outline color="secondary" (click)="goBack()">GO BACK</button>  
+    <button mat-stroked-button outline color="secondary" *ngIf="showBackButton" (click)="goBack()">GO BACK</button>  
 </div>

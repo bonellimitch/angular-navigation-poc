@@ -17,6 +17,10 @@ export class SecondComponent implements OnInit, OnDestroy, Routable {
   outlet!: string;
   number!: number;
 
+  get showBackButton(): boolean {
+    return this.route.showBackButton(this.activatedRoute);
+  }
+
   constructor(
     // private router: Router,
     private activatedRoute: ActivatedRoute,

@@ -19,6 +19,10 @@ export class FirstComponent implements OnInit, OnDestroy, Routable {
   outlet!: string;
   number!: string | null;
 
+  get showBackButton(): boolean {
+    return this.route.showBackButton(this.activatedRoute);
+  }
+
   constructor(
     private dialog: MatDialog,
     private activatedRoute: ActivatedRoute,
