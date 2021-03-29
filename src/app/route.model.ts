@@ -41,14 +41,20 @@ export class NamedRouterOutlet {
     }
 
     pushEntry(routeEntry: RouteEntry): void {
-        this.history.push(routeEntry);
-        this.currentIndex = this.history.length - 1;
+        this.currentIndex = this.history[this.currentIndex] ? this.currentIndex + 1 : this.currentIndex;
+        this.history[this.currentIndex] = routeEntry;
     }
 
     popEntry(): RouteEntry {
-        const entry = this.history.pop();
-        this.currentIndex = this.history.length - 1;
-        return entry as RouteEntry;
+        this.currentIndex = this.currentIndex >= 1 ? this.currentIndex - 1 : 0;
+        return this.history[this.currentIndex] as RouteEntry;
+    }
+
+    getCurrentRouteEntryParams(): any {
+        if (this.history[this.currentIndex]) {
+            return this.history[this.currentIndex].params ? this.history[this.currentIndex].params : null;
+        }
+        return null;
     }
 }
 

@@ -12,7 +12,7 @@ import { RouteService } from '../route.service';
 export class ModalComponent implements OnInit {
 
   outlet!: NamedRouterOutlet;
-  outletNotActivated = true;
+  // outletNotActivated = true;
 
   constructor(
     private route: RouteService,
@@ -22,15 +22,9 @@ export class ModalComponent implements OnInit {
   ngOnInit(): void {
     this.outlet = this.route.addDynamicModalRoutes();
 
-    // this.dialogRef.backdropClick().subscribe(backdrop => {
-    //   this.dialogRef.close(this.outlet.name);
-    // });
-
     this.dialogRef.afterClosed().subscribe(response => {
-      // if (this.outlet.name === response) {
-        console.log('aftet closed fired');
-        this.route.clearRouterOutlet();
-      // }
+      console.log('aftet closed fired');
+      this.route.clearRouterOutlet();
     });
   }
 
@@ -38,12 +32,8 @@ export class ModalComponent implements OnInit {
    * Quando il router outlet è inizializzato allora se necessario navigo al componente
    */
   initialized(event?: any): void {
-    const outlet = this.route.getActiveRouterOutletByName(this.outlet.name);
-    this.outletNotActivated = (outlet && !outlet.isActivated) as boolean;
-    if (this.outletNotActivated) {
-      this.route.navigate('first', {
-        number: this.route.randomInt(1, 100)
-      });
-    }
+    this.route.navigate('first', {
+      number: this.route.randomInt(1, 100)
+    });
   }
 }

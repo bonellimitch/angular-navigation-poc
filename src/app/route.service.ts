@@ -102,19 +102,12 @@ export class RouteService {
     });
   }
 
-  // private handlePrimaryRouterOutletSack(e: any): void {
-  //   const activeRouterOutlet = this.getCurrentActiveRouterOutlet();
-  //   if (e instanceof ActivationEnd && activeRouterOutlet.outlet === 'primary' && e.snapshot.url.length > 0) {
-  //     activeRouterOutlet.pushEntry(new RouteEntry(e.snapshot.url[0].path, e.snapshot.queryParams));
-  //   }
-  // }
-
   /**
    * Metodo proxy verso router.navigate di Angular che deve implementare tutta la gestione
    * della navigazione sia per il primary outlet che per i secondary outlet, salvanto contemporaneamente 
    * i dati necessari per mantenere la history.
    */
-  navigate(url: string, params?: any, currentComponent?: Routable): void {
+  navigate(url: string, params?: any, currentComponent?: Routable, isPopstate = false): void {
 
     // 1. salvo contesto
     if (currentComponent) {
@@ -134,7 +127,10 @@ export class RouteService {
     } else if (this.isModalOpen) {
       const outlets = {};
       (outlets as any)[activeRouterOutlet.name] = url ? [`${url}`] : null;
-      activeRouterOutlet.pushEntry(new RouteEntry(url, params));
+      if (!isPopstate) {
+        activeRouterOutlet.pushEntry(new RouteEntry(url, params));
+      }
+      this.backs = this.backs + 1;
       this.router.navigate([{ outlets }], {
         skipLocationChange: this.skipLocationChangeOnModalNavigation,
         queryParams: this.primaryRouterOutletQueryParams,
@@ -154,12 +150,11 @@ export class RouteService {
    */
   goBack(currentComponent: Routable): void {
     if (!this.isModalOpen) {
-      // this.popPreviousUrl();
       this.location.back();
     } else {
       const entry = this.popPreviousUrl();
       if (entry) {
-        this.navigate(entry.url, entry.params, currentComponent);
+        this.navigate(entry.url, entry.params, currentComponent, true);
       }
     }
   }
@@ -170,24 +165,6 @@ export class RouteService {
       return (routerHistory && routerHistory.currentIndex >= 1) as boolean;
     }
     return false;
-  }
-
-  /**
-   * Ripulisce la route settando come path 'null', attenzione: nella definizione delle route
-   * deve essere prevista una route '' altrimenti va in errore.
-   */
-  clearRoute(): void {
-    if (!this.isModalOpen) {
-      this.router.navigate([null]);
-    } else if (this.isModalOpen) {
-      const activeRouterOutlet = this.getCurrentActiveRouterOutlet();
-      const outlets = {};
-      (outlets as any)[activeRouterOutlet.name] = null;
-      this.router.navigate([{ outlets }], {
-        skipLocationChange: this.skipLocationChangeOnModalNavigation,
-        queryParams: this.primaryRouterOutletQueryParams
-      });
-    }
   }
 
   /**
@@ -213,9 +190,8 @@ export class RouteService {
    */
   clearRouterOutlet(): void {
     const activeRouterOutlet = this.getCurrentActiveRouterOutlet();
-    this.clearRoute();
     this.cleanUpLocation(activeRouterOutlet);
-    this.clearNamedRouterOutlet(activeRouterOutlet);
+    this.routerOutletStack.pop();
     const outlet = this.routerOutletMap.get(activeRouterOutlet.name);
     if (outlet) {
       outlet.deactivate();
@@ -226,14 +202,11 @@ export class RouteService {
   cleanUpLocation(activeRouterOutlet: NamedRouterOutlet): void {
     // 1. necessario ripulire la location solo se non è configurato il skipLocationChange
     if (!this.skipLocationChangeOnModalNavigation) {
-      this.backs = this.backs + activeRouterOutlet.history.length;
       if (activeRouterOutlet.name === 'modal_1') {
         for (let i = 0; i < this.backs; i++) {
           this.location.back();
         }
         this.backs = 0;
-      } else {
-        this.backs = this.backs + 1;
       }
     }
   }
@@ -268,11 +241,7 @@ export class RouteService {
       return activatedRoute.snapshot.queryParams;
     }
     const routerHistory = this.getRouterOutletByActivatedRoute(activatedRoute);
-    if (routerHistory && routerHistory.history.length > 0) {
-      const entry = routerHistory.history[routerHistory.history.length - 1];
-      return entry && entry.params ? entry.params : null;
-    }
-    return null;
+    return routerHistory ? routerHistory.getCurrentRouteEntryParams() : null;
   }
 
   /**
@@ -311,8 +280,7 @@ export class RouteService {
    */
   public popPreviousUrl(): RouteEntry | undefined {
     const activeRouterOutlet = this.getCurrentActiveRouterOutlet();
-    activeRouterOutlet.popEntry(); // current
-    return activeRouterOutlet.popEntry();  //previous
+    return activeRouterOutlet.popEntry();  // previous
   }
 
   randomInt(min: number, max: number): number {
@@ -340,16 +308,6 @@ export class RouteService {
 
     this.router.config.push(...routes);
     return routerOutlet;
-  }
-
-  /**
-   * Dato il nome dell router outlet ripulisce le route ad esso associato, ripristinando le route
-   * angular originali.
-   */
-  clearNamedRouterOutlet(outlet: NamedRouterOutlet): void {
-    // const routes = this.router.config.filter(route => route.outlet !== outlet);
-    // this.router.resetConfig(routes);
-    this.routerOutletStack.pop();
   }
 
   getRouterOutletName(): string {
@@ -485,9 +443,9 @@ export class RouteService {
       }
 
       if (index >= 0) {
-        // const historyEntry = this.primaryRouterOutlet.popEntry();
         const historyEntry = this.primaryRouterOutlet.history[index];
         historyEntry.id = this.lastNavigationStartEvent.id;
+        this.primaryRouterOutlet.currentIndex = index;
       } else {
         this.primaryRouterOutlet.currentIndex = 0;
       }
