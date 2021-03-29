@@ -485,7 +485,8 @@ export class RouteService {
       }
 
       if (index >= 0) {
-        const historyEntry = this.primaryRouterOutlet.popEntry();
+        // const historyEntry = this.primaryRouterOutlet.popEntry();
+        const historyEntry = this.primaryRouterOutlet.history[index];
         historyEntry.id = this.lastNavigationStartEvent.id;
       } else {
         this.primaryRouterOutlet.currentIndex = 0;
