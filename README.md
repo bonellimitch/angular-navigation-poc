@@ -33,7 +33,6 @@ Ogni modale dovrà permette all'utente di navigare in avanti oppure di tornare a
 - **pulizia stack e stato componenti**: andrebbe analizzato meglio come e quando ripulire lo stack di navigazione e lo stato dei componenti salvati altrimenti per come è implementato ora continuiamo ad incrementare le strutture. Non deve essere fatto ad ogni refresh di pagina ma probabilmente quando si cambia l'URL a mano invece di fare un semplice refresh.
 - **gestione query params**: i query params sono comuni sia al primary outlet che ai secondary outlet, l'idea è che solo il primary outlet sfrutti questi paramentri mentre sui secondary outlet tutto viene gestito da uno stack nel service `route.service.ts`
 - **pulizia codice / refactoring / semplificazione**: valutare se alcune logiche / implementazioni nel `route.service.ts` possono in realtà essere semplificate / rifattorizzate così da permettere anche una più facile gestione in futuro.
-- **dipendenza circolare**: risolvere la dipendenza circolare di `route.service.ts` verso `app-routing.module.ts` e quindi verso i componenti che vengono istanziati nell'applicazione. Sfruttare l'injection Angular per iniettare le route nel `route.service.ts` evitando così la dipendenza circolare. 
 
 
 ## References
