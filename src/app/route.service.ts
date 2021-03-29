@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, ComponentFactoryResolver, Injectable, ViewContainerRef } from '@angular/core';
+import { ChangeDetectorRef, ComponentFactoryResolver, Inject, Injectable, ViewContainerRef } from '@angular/core';
 import {
   ActivatedRoute,
   ActivationStart,
@@ -8,9 +8,9 @@ import {
   NavigationEnd,
   NavigationStart,
   Navigation,
-  Event
+  Event,
+  Routes
 } from '@angular/router';
-import { modalRoutes } from './app-routing.module';
 import * as _ from 'lodash';
 import { Location } from '@angular/common';
 import { RouteEntry, NamedRouterOutlet, Routable, Context, RouteUtility } from './route.model';
@@ -69,7 +69,8 @@ export class RouteService {
   constructor(
     private router: Router,
     private activatedRoute: ActivatedRoute,
-    private location: Location
+    private location: Location,
+    @Inject('MODAL_ROUTES') public modalRoutes: Routes
   ) {
     this.initializeRouteService();
   }
@@ -301,7 +302,7 @@ export class RouteService {
     this.routerOutletStack.push(routerOutlet);
 
     // 3. aggiungo le rotte associato al nuovo router outlet
-    const routes = _.cloneDeep(modalRoutes);
+    const routes = _.cloneDeep(this.modalRoutes);
     for (const route of routes) {
       route.outlet = name;
     }
