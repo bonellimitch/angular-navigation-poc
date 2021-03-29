@@ -14,6 +14,8 @@ import {
 import * as _ from 'lodash';
 import { Location } from '@angular/common';
 import { RouteEntry, NamedRouterOutlet, Routable, Context, RouteUtility } from './route.model';
+import { MatDialog, MatDialogRef } from '@angular/material/dialog';
+import { ModalComponent } from './modal/modal.component';
 
 // url we don't want to track in history for whatever reason
 export const BLACKLIST_URLS = [];
@@ -70,6 +72,7 @@ export class RouteService {
     private router: Router,
     private activatedRoute: ActivatedRoute,
     private location: Location,
+    private dialog: MatDialog,
     @Inject('MODAL_ROUTES') public modalRoutes: Routes
   ) {
     this.initializeRouteService();
@@ -160,6 +163,15 @@ export class RouteService {
     }
   }
 
+  openNavigationModal(currentComponent: Routable): MatDialogRef<ModalComponent, any> {
+    currentComponent.saveContext();
+    const ref = this.dialog.open(ModalComponent, {
+      width: '80vw',
+      height: '80vh',
+    });
+    return ref;
+  }
+
   showBackButton(activatedRoute: ActivatedRoute): boolean {
     if (activatedRoute) {
       const routerHistory = this.getRouterOutletByActivatedRoute(activatedRoute);
@@ -243,6 +255,38 @@ export class RouteService {
     }
     const routerHistory = this.getRouterOutletByActivatedRoute(activatedRoute);
     return routerHistory ? routerHistory.getCurrentRouteEntryParams() : null;
+  }
+
+  /**
+   * Metodo che data la activatedRoute e il componentId ritorna il contesto di sessione del componente.
+   * 
+   * Nota: non posso basarmi sul currentIndex perchè un componente in background potrebbe lanciare funzioni
+   * e avere bisogno del contesto e il suo contesto non deve tenere in considerazione quello del componente che invece
+   * in quel momento è in foreground.
+   */
+  getContext(activatedRoute: ActivatedRoute, componentId: string): Context[] {
+    const sessionContext: Context[] = [];
+
+    const routerOutlet = this.getRouterOutletByActivatedRoute(activatedRoute);
+    const routerOutletIndex = this.routerOutletStack.findIndex(router => router.name === routerOutlet?.name);
+    const routerStack = this.routerOutletStack.slice(0, routerOutletIndex + 1);
+
+    for (const namedRouterOutlet of routerStack) {
+      for (const entry of namedRouterOutlet.history) {
+        if (entry.componentId && this.getContextById(entry.componentId)) {
+          sessionContext.push(this.getContextById(entry.componentId));
+        }
+
+        if (entry.componentId === componentId) {
+          break;
+        }
+      }
+    }
+    return sessionContext.reverse();
+  }
+
+  getContextById(componentId: string): Context {
+    return this.componentSessionContext[componentId];
   }
 
   /**

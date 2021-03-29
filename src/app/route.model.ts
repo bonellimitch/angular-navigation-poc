@@ -27,6 +27,10 @@ export class RouteEntry {
         this.url = url;
         this.params = params;
     }
+
+    get componentId(): string {
+        return this.params && this.params.id ? this.params.id : null;
+    }
 }
 
 export class NamedRouterOutlet {

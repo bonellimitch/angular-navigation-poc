@@ -56,4 +56,9 @@ export class SecondComponent implements OnInit, OnDestroy, Routable {
   goBack(): void {
     this.route.goBack(this);
   }
+
+  printContext(): void {
+    const context = this.route.getContext(this.activatedRoute, this.id);
+    console.log(context);
+  }
 }

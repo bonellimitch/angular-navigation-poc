@@ -50,11 +50,7 @@ export class FirstComponent implements OnInit, OnDestroy, Routable {
   }
 
   openModal(event: Event): void {
-    const ref = this.dialog.open(ModalComponent, {
-      width: '80vw',
-      height: '80vh',
-      // disableClose: true
-    });
+   this.route.openNavigationModal(this);
   }
 
   navigate(url: string): void {
@@ -67,4 +63,8 @@ export class FirstComponent implements OnInit, OnDestroy, Routable {
     this.route.goBack(this);
   }
 
+  printContext(): void {
+    const context = this.route.getContext(this.activatedRoute, this.id);
+    console.log(context);
+  }
 }
