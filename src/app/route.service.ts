@@ -108,7 +108,7 @@ export class RouteService {
 
   /**
    * Metodo proxy verso router.navigate di Angular che deve implementare tutta la gestione
-   * della navigazione sia per il primary outlet che per i secondary outlet, salvanto contemporaneamente 
+   * della navigazione sia per il primary outlet che per i secondary outlet, salvanto contemporaneamente
    * i dati necessari per mantenere la history.
    */
   navigate(url: string, params?: any, currentComponent?: Routable, isPopstate = false): void {
@@ -124,7 +124,6 @@ export class RouteService {
 
     const activeRouterOutlet = this.getCurrentActiveRouterOutlet();
     if (!this.isModalOpen) {
-      // activeRouterOutlet.stack.push(new StackEntry(url, params));
       this.router.navigate([url], {
         queryParams: params
       });
@@ -216,9 +215,10 @@ export class RouteService {
     // 1. necessario ripulire la location solo se non è configurato il skipLocationChange
     if (!this.skipLocationChangeOnModalNavigation) {
       if (activeRouterOutlet.name === 'modal_1') {
-        for (let i = 0; i < this.backs; i++) {
-          this.location.back();
-        }
+        // for (let i = 0; i < this.backs; i++) {
+        //   this.location.back();
+        // }
+        window.history.go(- this.backs);
         this.backs = 0;
       }
     }
