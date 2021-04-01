@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, ComponentFactoryResolver, Inject, Injectable, ViewContainerRef } from '@angular/core';
+import { ChangeDetectorRef, ComponentFactoryResolver, Inject, Injectable, InjectionToken, ViewContainerRef } from '@angular/core';
 import {
   ActivatedRoute,
   ActivationStart,
@@ -15,7 +15,10 @@ import * as _ from 'lodash';
 import { Location } from '@angular/common';
 import { RouteEntry, NamedRouterOutlet, Routable, Context, RouteUtility } from './route.model';
 import { MatDialog, MatDialogRef } from '@angular/material/dialog';
-import { ModalComponent } from './modal/modal.component';
+// import { ModalComponent } from './modal/modal.component';
+import { ComponentType } from '@angular/cdk/portal';
+
+export const DIALOG_MODULE_COMPONENT = new InjectionToken<ComponentType<any>>('DIALOG_MODULE_COMPONENT');
 
 // url we don't want to track in history for whatever reason
 export const BLACKLIST_URLS = [];
@@ -73,7 +76,8 @@ export class RouteService {
     private activatedRoute: ActivatedRoute,
     private location: Location,
     private dialog: MatDialog,
-    @Inject('MODAL_ROUTES') public modalRoutes: Routes
+    @Inject('MODAL_ROUTES') public modalRoutes: Routes,
+    @Inject(DIALOG_MODULE_COMPONENT) public modalCommponent: ComponentType<any>
   ) {
     this.initializeRouteService();
   }
@@ -162,9 +166,9 @@ export class RouteService {
     }
   }
 
-  openNavigationModal(currentComponent: Routable): MatDialogRef<ModalComponent, any> {
+  openNavigationModal(currentComponent: Routable): MatDialogRef<ComponentType<any>, any> {
     currentComponent.saveContext();
-    const ref = this.dialog.open(ModalComponent, {
+    const ref = this.dialog.open(this.modalCommponent, {
       width: '80vw',
       height: '80vh',
     });
