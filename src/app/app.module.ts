@@ -11,6 +11,7 @@ import { ModalComponent } from './modal/modal.component';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { MatButtonModule } from '@angular/material/button';
 import { NamedOutletDirective } from './named-outlet.directive';
+import { DIALOG_MODULE_COMPONENT } from './route.service';
 
 @NgModule({
   declarations: [
@@ -28,7 +29,7 @@ import { NamedOutletDirective } from './named-outlet.directive';
     MatDialogModule,
     MatButtonModule
   ],
-  providers: [NamedOutletDirective],
+  providers: [NamedOutletDirective, { provide: DIALOG_MODULE_COMPONENT, useValue: ModalComponent }],
   bootstrap: [AppComponent]
 })
 export class AppModule { }
